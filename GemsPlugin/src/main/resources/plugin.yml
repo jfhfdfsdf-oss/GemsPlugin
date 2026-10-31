@@ -1,0 +1,19 @@
+name: Gems
+version: 1.0.0
+main: de.gilbert.gems.GemsPlugin
+api-version: '26.3'
+author: Gilbert
+website: https://papermc.io/
+description: 8 utility Gems with crafting, XP progression and abilities.
+commands:
+  gems:
+    description: Shows Gems and their recipes.
+    usage: /gems [recipe <gem>|give <gem> [player]|reset <gem>|setlevel <gem> <1-5>]
+    permission: gems.use
+permissions:
+  gems.use:
+    description: Allows using the Gems overview and recipes.
+    default: true
+  gems.admin:
+    description: Allows administrative Gems commands.
+    default: op
