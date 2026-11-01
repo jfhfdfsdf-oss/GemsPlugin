@@ -30,7 +30,6 @@ jobs:
 
           if [ -z "$POM_PATH" ]; then
             echo "FEHLER: Keine pom.xml gefunden!"
-            echo "Repository-Inhalt:"
             ls -la
             exit 1
           fi
