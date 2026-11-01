@@ -1,31 +1,41 @@
+
 name: Build Gems plugin
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Repository herunterladen
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Java 25 installieren
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
           cache: maven
 
-      - name: Plugin bauen
-        run: mvn -B clean package
+      - name: Check project files
+        run: |
+          echo "Repository contents:"
+          ls -la
+          echo "Searching for pom.xml:"
+          find . -name pom.xml
 
-      - name: JAR speichern
+      - name: Build Gems plugin
+        run: mvn -B clean package
+        working-directory: ./GemsPlugin
+
+      - name: Upload plugin JAR
         uses: actions/upload-artifact@v4
         with:
-          name: Gems-Plugin
-          path: target/*.jar
+          name: GemsPlugin
+          path: GemsPlugin/target/*.jar
+          if-no-files-found: error
