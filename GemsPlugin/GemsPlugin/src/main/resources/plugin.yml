@@ -1,0 +1,13 @@
+name: Gems
+version: 1.0.0
+main: de.gems.GemsPlugin
+api-version: '1.21'
+description: 15 einzigartige Gems, die durch Kills leveln
+commands:
+  gems:
+    description: Gem-Übersicht und Admin-Befehle
+    usage: /gems [info|recipe <gem>|give <gem> [spieler]|reset <gem>|setlevel <gem> <1-5>]
+permissions:
+  gems.admin:
+    description: Admin-Befehle für Gems
+    default: op
