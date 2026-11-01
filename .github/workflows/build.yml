@@ -1,41 +1,87 @@
 
-name: Build Gems plugin
+name: Build Gems Plugin
 
 on:
   push:
     branches:
-      - main
+      - "**"
+  pull_request:
+    branches:
+      - "**"
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: Build Minecraft Plugin
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 25
+      - name: Find Maven project
+        id: project
+        shell: bash
+        run: |
+          POM_PATH=$(find . -name pom.xml -not -path '*/target/*' | head -n 1)
+
+          if [ -z "$POM_PATH" ]; then
+            echo "FEHLER: Keine pom.xml gefunden!"
+            echo "Repository-Inhalt:"
+            ls -la
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$POM_PATH")
+
+          echo "Maven-Projekt gefunden: $PROJECT_DIR"
+          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: "25"
           cache: maven
 
-      - name: Check project files
-        run: |
-          echo "Repository contents:"
-          ls -la
-          echo "Searching for pom.xml:"
-          find . -name pom.xml
+      - name: Check Java version
+        run: java -version
 
-      - name: Build Gems plugin
+      - name: Check Maven version
+        run: mvn -version
+
+      - name: Run tests
+        working-directory: ${{ steps.project.outputs.project_dir }}
+        run: mvn -B test
+
+      - name: Build with Maven
+        working-directory: ${{ steps.project.outputs.project_dir }}
         run: mvn -B clean package
-        working-directory: ./GemsPlugin
 
-      - name: Upload plugin JAR
+      - name: Find generated JAR
+        id: jar
+        working-directory: ${{ steps.project.outputs.project_dir }}
+        shell: bash
+        run: |
+          JAR_PATH=$(find target -maxdepth 1 -name "*.jar" \
+            ! -name "*-sources.jar" \
+            ! -name "*-javadoc.jar" | head -n 1)
+
+          if [ -z "$JAR_PATH" ]; then
+            echo "FEHLER: Keine Plugin-JAR gefunden!"
+            ls -la target || true
+            exit 1
+          fi
+
+          echo "Plugin-JAR gefunden: $JAR_PATH"
+          echo "jar_path=${{ steps.project.outputs.project_dir }}/$JAR_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Gems Plugin
         uses: actions/upload-artifact@v4
         with:
-          name: GemsPlugin
-          path: GemsPlugin/target/*.jar
+          name: Gems-Plugin
+          path: ${{ steps.jar.outputs.jar_path }}
           if-no-files-found: error
