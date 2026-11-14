@@ -1,13 +1,8 @@
-
-name: Build Gems Plugin
+name: Build LevelPvP
 
 on:
   push:
-    branches:
-      - "**"
   pull_request:
-    branches:
-      - "**"
   workflow_dispatch:
 
 permissions:
@@ -15,72 +10,28 @@ permissions:
 
 jobs:
   build:
-    name: Build Minecraft Plugin
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Repository auschecken
         uses: actions/checkout@v4
 
-      - name: Find Maven project
-        id: project
-        shell: bash
-        run: |
-          POM_PATH=$(find . -name pom.xml -not -path '*/target/*' | head -n 1)
-
-          if [ -z "$POM_PATH" ]; then
-            echo "FEHLER: Keine pom.xml gefunden!"
-            ls -la
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$POM_PATH")
-
-          echo "Maven-Projekt gefunden: $PROJECT_DIR"
-          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Java
+      - name: Java 25 installieren
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "25"
-          cache: maven
+          java-version: '25'
 
-      - name: Check Java version
-        run: java -version
+      - name: Gradle einrichten
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Check Maven version
-        run: mvn -version
+      - name: Projekt mit Gradle bauen
+        working-directory: LevelPvP-1.1.0
+        run: gradle clean build
 
-      - name: Run tests
-        working-directory: ${{ steps.project.outputs.project_dir }}
-        run: mvn -B test
-
-      - name: Build with Maven
-        working-directory: ${{ steps.project.outputs.project_dir }}
-        run: mvn -B clean package
-
-      - name: Find generated JAR
-        id: jar
-        working-directory: ${{ steps.project.outputs.project_dir }}
-        shell: bash
-        run: |
-          JAR_PATH=$(find target -maxdepth 1 -name "*.jar" \
-            ! -name "*-sources.jar" \
-            ! -name "*-javadoc.jar" | head -n 1)
-
-          if [ -z "$JAR_PATH" ]; then
-            echo "FEHLER: Keine Plugin-JAR gefunden!"
-            ls -la target || true
-            exit 1
-          fi
-
-          echo "Plugin-JAR gefunden: $JAR_PATH"
-          echo "jar_path=${{ steps.project.outputs.project_dir }}/$JAR_PATH" >> "$GITHUB_OUTPUT"
-
-      - name: Upload Gems Plugin
+      - name: Plugin-JAR hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: Gems-Plugin
-          path: ${{ steps.jar.outputs.jar_path }}
+          name: LevelPvP-1.1.0
+          path: LevelPvP-1.1.0/build/libs/*.jar
           if-no-files-found: error
+          retention-days: 30
