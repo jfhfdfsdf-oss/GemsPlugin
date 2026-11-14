@@ -1,0 +1,8 @@
+settings:
+  min-level: -10
+  global-max-level: 30
+  absolute-max-level: 50
+  negative-xp-minimum: 0.10
+  delivery-title: '&8Delivery'
+  inbox-title: '&8Deine Lieferungen'
+  stats-title: '&8Deine Statistiken'
